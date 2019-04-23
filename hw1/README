@@ -1,0 +1,12 @@
+
+ARITH interpreter
+Morgan Grant (mlgrant@ucsc.edu)
+CS 203 Spring 2019
+
+this is my haskell submission for homework 1. it consists of 2 files: Arith.hs and Parse.y
+
+Arith.hs contains the function `eval` which evaluates ARITH ASTs and produces a float result. Arith.hs also contains the function `runTest` which takes a tuple of an expression and an expected result and prints success or error if the expression is evaluated correctly by `eval`. `main` calls `runTest` on a bunch of different test cases.
+
+Parse.y contains a parser written using the parser generator happy, as well as the definition for the type that represents an ARITH AST and a basic lexer. This file was compiled into Parse.hs using happy.
+
+run my program by compiling Parse.hs and Arith.hs, then running Arith. my ARITH interpreter completes all of the requirements outlined in the slides, as well as a parser/lexer, infix division and subtraction operations, and a prefix additive inversion operation.
