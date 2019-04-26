@@ -12,6 +12,7 @@ data AExp
     | SumAExp   AExp AExp
     | DiffAExp  AExp AExp
     | MulAExp   AExp AExp
+    deriving Show
 
 -- boolean expressions
 data BExp
@@ -22,6 +23,7 @@ data BExp
     | NotBExp   BExp
     | AndBExp   BExp BExp
     | OrBExp    BExp BExp
+    deriving Show
 
 -- command expressions
 data Comm
@@ -30,4 +32,5 @@ data Comm
     | CompComm  Comm Comm
     | IfComm    BExp Comm Comm
     | WhileComm BExp Comm
+    deriving Show
 
