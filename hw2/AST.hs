@@ -16,8 +16,8 @@ data AExp
 
 -- boolean expressions
 data BExp
-    = TrueBExp
-    | FalseBExp
+    = BoolBExp  Bool
+    | VarBExp   WhileVar
     | EqBExp    AExp AExp
     | LtBExp    AExp AExp
     | NotBExp   BExp
@@ -28,7 +28,8 @@ data BExp
 -- command expressions
 data Comm
     = SkipComm
-    | AssComm   WhileVar  AExp
+    | AssIntComm   WhileVar  AExp
+    | AssBoolComm  WhileVar  BExp
     | CompComm  Comm Comm
     | IfComm    BExp Comm Comm
     | WhileComm BExp Comm
