@@ -1,0 +1,13 @@
+
+While interpreter
+Morgan Grant (mlgrant@ucsc.edu)
+CS 203 Spring 2019
+
+this is my haskell submission for homework 1. it consists of 2 main files: Main.hs, which runs tests and Eval.hs which evaluates ASTs for the While language.
+
+the file AST.hs contains the types for While ASTs. the files Tokens.hs and Parse.y are used with the happy parser generator to create a parser and lexer for While.
+
+my program fills all of the requirements that were given with the assignment. in addition, it contains a parser and lexer for the While language, and has support for explicitly typed integer and boolean variables. you can see this behavior by looking at the definition of evalComm for the AssIntComm and AssBoolComm types. I used a hash map from Data.Map to represent program state, and created types to define both the name and value of a variable in the state.
+
+run my program with `runhaskell Main.hs`. it'll run through a bunch of premade programs and confirm that the states they return contain some expected key-value pair.
+
