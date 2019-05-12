@@ -1,0 +1,7 @@
+
+small step While interpreter
+Morgan Grant (mlgrant@ucsc.edu)
+CS 203 Spring 2019
+
+this is my submission for homework 4. it consists of 3 files: AST.hs, Eval.hs and Main.hs. AST.hs contains the types used to represent a While AST. Eval.hs contains functions for evaluating While Expressions, including the function stepComm, which takes a command and a state and returns the command and state that result from taking one step on the input. Main.hs contains functions for pretty printing while expressions and states, and the function evalComm which takes in a command and state and steps it until it reaches a single skip command, printing all intermediate commands and states. main runs evalComm on several test cases.
+
