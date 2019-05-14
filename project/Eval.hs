@@ -2,19 +2,20 @@
 module Eval where
 import Parser
 import qualified Data.Map as Map
-import Control.Monad.State
+import Control.Monad.State.Lazy
 
 data LispVal
     = AtomVal LispAtom
-    | ListVal [LispAtom]
+    | ListVal [LispVal]
     | NoneVal
 
 instance Show LispVal where
     show (AtomVal atom) = show atom
     show (ListVal list) = "(" ++ (unwords $ map show list) ++ ")"
+    show NoneVal        = "<None>"
 
 data LispAtom
-    = LambdaAtom ([LispVal] -> LispVal)
+    = LambdaAtom {getLambdaFunc :: [LispExpr] -> State LispState LispVal}
     | FloatAtom   Float
 
 instance Show LispAtom where
@@ -23,22 +24,34 @@ instance Show LispAtom where
 
 type LispState = Map.Map LispIdent LispVal
 
-evalExpr :: LispState -> LispExpr -> LispVal
 
-evalExpr state (FloatExpr n)              = AtomVal (FloatAtom  n)
-evalExpr state (LambdaExpr params body)   = AtomVal (LambdaAtom (\ args -> evalExpr (makeFuncState params state args) body ))
-evalExpr state (CallExpr funcExpr args) = case evalExpr state funcExpr of
-    (AtomVal (LambdaAtom f)) -> f $ map (evalExpr state) args
-    _                        -> error "not a function"
-evalExpr state (IdentExpr ident)          = case Map.lookup ident state of
-    Nothing  -> error ("var '" ++ ident ++  "' used before assignment")
-    Just val -> val
+evalExpr :: LispExpr -> State LispState LispVal
 
-makeFuncState :: [LispIdent] -> LispState -> [LispVal]  -> LispState
-makeFuncState params outerState args
+evalExpr (FloatExpr n)            = return $ AtomVal $ FloatAtom $ n
+
+evalExpr (LambdaExpr params body) = return $ AtomVal $ LambdaAtom $ f
+    where f = (\args -> do { state      <- get
+                           ; evaledArgs <- mapM evalExpr args
+                           ; put $ makeInnerState params state evaledArgs
+                           ; result     <- evalExpr body
+                           ; put state
+                           ; return result })
+
+evalExpr (CallExpr funcExpr args) = do
+    val <- evalExpr funcExpr
+    case val of
+        (AtomVal (LambdaAtom func)) -> func args
+        _                           -> error "not callable"
+
+evalExpr (IdentExpr ident)        = do
+    state <- get
+    return $ case Map.lookup ident state of
+        Nothing  -> error ("var '" ++ ident ++  "' not in scope")
+        Just val -> val
+
+
+makeInnerState :: [LispIdent] -> LispState -> [LispVal] -> LispState
+makeInnerState params outerState args
     | length params /= length args = error "arity mismatch"
-    | otherwise = foldl (\ acc (arg, param) -> Map.insert param arg acc) outerState $ zip args params
-
--- could work
--- foldl (flip $) outerState $ zipWith Map.insert params args
+    | otherwise = Map.union (Map.fromList $ zip params args) outerState
 
