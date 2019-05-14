@@ -1,6 +1,12 @@
 
 {
-module Parser where
+module Parser
+( parser
+, LispIdent
+, LispAction (..)
+, LispAssignment (..)
+, LispExpr (..)
+) where
 import Lexer
 }
 
@@ -21,15 +27,11 @@ import Lexer
 
 %%
 
-program    : action                                { [ $1 ]               }
-           | action program                        {  $1 : $2             }
-
-action     : assignment                            { AssignAction $1      }
-           | expr                                  { ExprAction $1        }
-
-assignment : '(' 'define' ident expr ')'           { LispAssignment $3 $4 }
+program    : expr                                  { [ $1 ]               }
+           | expr program                          {  $1 : $2             }
 
 expr       : '(' lambda '(' paramlist ')' expr ')' { LambdaExpr $4 $6     }
+           | '(' 'define' ident expr ')'           { DefineExpr $3 $4     }
            | '(' expr arglist ')'                  { CallExpr   $2 $3     }
            | ident                                 { IdentExpr  $1        }
            | floatlit                              { FloatExpr  $1        }
@@ -53,11 +55,9 @@ data LispAction
     | AssignAction LispAssignment
     deriving Show
 
-data LispAssignment = LispAssignment LispIdent LispExpr
-    deriving Show
-
 data LispExpr
     = LambdaExpr [LispIdent]  LispExpr
+    | DefineExpr  LispIdent   LispExpr
     | CallExpr    LispExpr   [LispExpr]
     | IdentExpr   LispIdent
     | FloatExpr   Float

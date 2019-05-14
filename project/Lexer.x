@@ -21,6 +21,7 @@ tokens :-
     \#f             { \s -> TokLitBool False     }
     \".*\"          { \s -> TokLitStr s          }
     $identchars+    { \s -> TokIdent s           }
+
 {
 
 data Token
