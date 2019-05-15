@@ -49,6 +49,12 @@ evalExpr (IdentExpr ident)        = do
         Nothing  -> error ("var '" ++ ident ++  "' not in scope")
         Just val -> val
 
+evalExpr (DefineExpr ident expr) = do
+    state <- get
+    val   <- evalExpr expr
+    put $ Map.insert ident val state
+    return NoneVal
+
 
 makeInnerState :: [LispIdent] -> LispState -> [LispVal] -> LispState
 makeInnerState params outerState args
