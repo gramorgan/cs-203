@@ -1,49 +1,34 @@
 
 module Eval where
 import Parser
+import State
 import qualified Data.Map as Map
 import Control.Monad.State.Lazy
 
-data LispVal
-    = AtomVal LispAtom
-    | ListVal [LispVal]
-    | NoneVal
-
-instance Show LispVal where
-    show (AtomVal atom) = show atom
-    show (ListVal list) = "(" ++ (unwords $ map show list) ++ ")"
-    show NoneVal        = "<None>"
-
-data LispAtom
-    = LambdaAtom {getLambdaFunc :: [LispExpr] -> State LispState LispVal}
-    | FloatAtom   Float
-
-instance Show LispAtom where
-    show (LambdaAtom f) = "<Function>"
-    show (FloatAtom n)  = show n
-
-type LispState = Map.Map LispIdent LispVal
-
+evalProgram :: [LispExpr] -> ([LispVal], LispState)
+evalProgram prog = runState (mapM evalExpr prog) initialState
 
 evalExpr :: LispExpr -> State LispState LispVal
 
-evalExpr (FloatExpr n)            = return $ AtomVal $ FloatAtom $ n
+evalExpr (FloatExpr n)  = return $ AtomVal $ FloatAtom  $ n
+evalExpr (BoolExpr  b)  = return $ AtomVal $ BoolAtom   $ b
+evalExpr (StrExpr   s)  = return $ AtomVal $ StrAtom    $ s
 
 evalExpr (LambdaExpr params body) = return $ AtomVal $ LambdaAtom $ f
-    where f = (\args -> do { state      <- get
-                           ; evaledArgs <- mapM evalExpr args
-                           ; put $ makeInnerState params state evaledArgs
-                           ; result     <- evalExpr body
+    where f = (\args -> do { state   <- get
+                           ; put $ makeInnerState params state args
+                           ; result  <- evalExpr body
                            ; put state
                            ; return result })
 
 evalExpr (CallExpr funcExpr args) = do
     val <- evalExpr funcExpr
+    argVals <- mapM evalExpr args
     case val of
-        (AtomVal (LambdaAtom func)) -> func args
+        (AtomVal (LambdaAtom func)) -> func argVals
         _                           -> error "not callable"
 
-evalExpr (IdentExpr ident)        = do
+evalExpr (IdentExpr ident) = do
     state <- get
     return $ case Map.lookup ident state of
         Nothing  -> error ("var '" ++ ident ++  "' not in scope")

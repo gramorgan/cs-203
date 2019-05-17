@@ -2,9 +2,6 @@
 {
 module Parser
 ( parser
-, LispIdent
-, LispAction (..)
-, LispAssignment (..)
 , LispExpr (..)
 ) where
 import Lexer
@@ -33,6 +30,7 @@ program    : expr                                  { [ $1 ]               }
 expr       : '(' lambda '(' paramlist ')' expr ')' { LambdaExpr $4 $6     }
            | '(' 'define' ident expr ')'           { DefineExpr $3 $4     }
            | '(' expr arglist ')'                  { CallExpr   $2 $3     }
+           | '(' 'quote')
            | ident                                 { IdentExpr  $1        }
            | floatlit                              { FloatExpr  $1        }
            | boollit                               { BoolExpr   $1        }
@@ -48,19 +46,13 @@ arglist    : expr                                  { [ $1 ]               }
 
 parseError = error "parse error"
 
-type LispIdent = String
-
-data LispAction
-    = ExprAction LispExpr
-    | AssignAction LispAssignment
-    deriving Show
 
 data LispExpr
-    = LambdaExpr [LispIdent]  LispExpr
-    | DefineExpr  LispIdent   LispExpr
-    | CallExpr    LispExpr   [LispExpr]
-    | IdentExpr   LispIdent
-    | FloatExpr   Float
+    = LambdaExpr [String]   LispExpr
+    | DefineExpr  String    LispExpr
+    | CallExpr    LispExpr [LispExpr]
+    | IdentExpr   String 
+    | FloatExpr     Float
     | BoolExpr    Bool
     | StrExpr     String
     deriving Show
