@@ -1,17 +1,18 @@
 
 module State where
+import Parser(LispExpr)
 import qualified Data.Map as Map
 import Control.Monad.State.Lazy
 
 data LispVal
     = AtomVal LispAtom
-    | ListVal [LispVal]
     | NoneVal
+    | QuoteVal LispExpr
 
 instance Show LispVal where
     show (AtomVal atom) = show atom
-    show (ListVal list) = "(" ++ (unwords $ map show list) ++ ")"
     show NoneVal        = "<None>"
+    show (QuoteVal e)   = "'" ++ (show e)
 
 data LispAtom
     = LambdaAtom ([LispVal] -> State LispState LispVal)
@@ -23,7 +24,7 @@ instance Show LispAtom where
     show (LambdaAtom f) = "<Function>"
     show (FloatAtom  n) = show n
     show (BoolAtom   b) = if b then "#t" else "#f"
-    show (StrAtom    s) = show s
+    show (StrAtom    s) = s
 
 type LispIdent = String
 

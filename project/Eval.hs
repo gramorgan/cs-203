@@ -5,8 +5,8 @@ import State
 import qualified Data.Map as Map
 import Control.Monad.State.Lazy
 
-evalProgram :: [LispExpr] -> ([LispVal], LispState)
-evalProgram prog = runState (mapM evalExpr prog) initialState
+evalProgram :: LispState -> [LispExpr] -> ([LispVal], LispState)
+evalProgram state prog = runState (mapM evalExpr prog) state
 
 evalExpr :: LispExpr -> State LispState LispVal
 
@@ -39,6 +39,8 @@ evalExpr (DefineExpr ident expr) = do
     val   <- evalExpr expr
     put $ Map.insert ident val state
     return NoneVal
+
+evalExpr (QuoteExpr expr) = return (QuoteVal expr)
 
 
 makeInnerState :: [LispIdent] -> LispState -> [LispVal] -> LispState

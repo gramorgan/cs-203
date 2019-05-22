@@ -66,7 +66,14 @@ data LispExpr
     | StrExpr     String
     | ListExpr   [LispExpr]
     | QuoteExpr   LispExpr
-    deriving Show
+
+instance Show LispExpr where
+    show (IdentExpr s) = s
+    show (FloatExpr n) = show n
+    show (BoolExpr  b) = if b then "#t" else "#f"
+    show (StrExpr   s) = s
+    show (ListExpr  l) = "(" ++ (unwords $ map show l) ++ ")"
+    show _             = "unimplemented"
 
 }
 
