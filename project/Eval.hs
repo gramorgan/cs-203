@@ -10,11 +10,11 @@ evalProgram state prog = runState (mapM evalExpr prog) state
 
 evalExpr :: LispExpr -> State LispState LispVal
 
-evalExpr (FloatExpr n)  = return $ AtomVal $ FloatAtom  $ n
-evalExpr (BoolExpr  b)  = return $ AtomVal $ BoolAtom   $ b
-evalExpr (StrExpr   s)  = return $ AtomVal $ StrAtom    $ s
+evalExpr (FloatExpr n)  = return $ FloatVal $ n
+evalExpr (BoolExpr  b)  = return $ BoolVal  $ b
+evalExpr (StrExpr   s)  = return $ StrVal   $ s
 
-evalExpr (LambdaExpr params body) = return $ AtomVal $ LambdaAtom $ f
+evalExpr (LambdaExpr params body) = return $ LambdaVal $ f
     where f = (\args -> do { state   <- get
                            ; put $ makeInnerState params state args
                            ; result  <- evalExpr body
@@ -25,8 +25,8 @@ evalExpr (CallExpr funcExpr args) = do
     val <- evalExpr funcExpr
     argVals <- mapM evalExpr args
     case val of
-        (AtomVal (LambdaAtom func)) -> func argVals
-        _                           -> error "not callable"
+        (LambdaVal func) -> func argVals
+        _                 -> error "not callable"
 
 evalExpr (IdentExpr ident) = do
     state <- get
@@ -41,6 +41,21 @@ evalExpr (DefineExpr ident expr) = do
     return NoneVal
 
 evalExpr (QuoteExpr expr) = return (QuoteVal expr)
+
+evalExpr (IfExpr be e1 e2) = do
+    cond <- evalExpr be
+    case cond of
+        (BoolVal b) -> if b then evalExpr e1 else evalExpr e2
+        _            -> error "condition must be a boolean"
+
+evalExpr (LetExpr letList body) = do
+    let idents = map fst letList
+    vals <- mapM evalExpr $ map snd letList
+    state <- get
+    put $ makeInnerState idents state vals
+    result <- evalExpr body
+    put state
+    return result
 
 
 makeInnerState :: [LispIdent] -> LispState -> [LispVal] -> LispState

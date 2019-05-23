@@ -17,9 +17,11 @@ tokens :-
     define          { \s -> TokDefine            }
     quote           { \s -> TokQuote             }
     lambda          { \s -> TokLambda            }
+    if              { \s -> TokIf                }
+    let             { \s -> TokLet               }
     \#t             { \s -> TokLitBool True      }
     \#f             { \s -> TokLitBool False     }
-    \".*\"          { \s -> TokLitStr s          }
+    \"~\"*\"          { \s -> TokLitStr s          }
     $identchars+    { \s -> TokIdent s           }
 
 {
@@ -31,6 +33,7 @@ data Token
     | TokLitBool  Bool
     | TokLitStr   String
     | TokIf
+    | TokLet
     | TokDefine
     | TokQuote
     | TokLambda
