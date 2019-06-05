@@ -1,4 +1,6 @@
 
+-- scheme parser made using happy
+
 {
 module Parser
 ( parser
@@ -19,6 +21,7 @@ import Lexer
     'lambda'    { TokLambda      }
     'if'        { TokIf          }
     'let'       { TokLet         }
+    tick        { TokTick        }
     floatlit    { TokLitFloat $$ }
     boollit     { TokLitBool $$  }
     strlit      { TokLitStr $$   }
@@ -33,10 +36,13 @@ expr       : '(' 'lambda' '(' paramlist ')' expr ')' { LambdaExpr $4 $6     }
            | '(' 'define' ident expr ')'             { DefineExpr $3 $4     }
            | '(' expr arglist ')'                    { CallExpr   $2 $3     }
            | '(' 'quote' quoteexpr ')'               { QuoteExpr  $3        }
+           | tick quoteexpr                          { QuoteExpr  $2        }
            | '(' 'if' expr expr expr ')'             { IfExpr     $3 $4 $5  }
            | '(' 'let' '(' letlist ')' expr ')'      { LetExpr    $4 $6     }
+           | atom                                    { $1                   }
            | ident                                   { IdentExpr  $1        }
-           | floatlit                                { FloatExpr  $1        }
+
+atom       : floatlit                                { FloatExpr  $1        }
            | boollit                                 { BoolExpr   $1        }
            | strlit                                  { StrExpr    $1        }
 
@@ -46,10 +52,7 @@ paramlist  : ident                                   { [ $1 ]               }
 arglist    : expr                                    { [ $1 ]               }
            | expr arglist                            { $1 : $2              }
 
-quoteexpr  : ident                                   { IdentExpr  $1        }
-           | floatlit                                { FloatExpr  $1        }
-           | boollit                                 { BoolExpr   $1        }
-           | strlit                                  { StrExpr    $1        }
+quoteexpr  : atom                                    { $1                   }
            | '(' quotelist ')'                       { ListExpr   $2        }
 
 quotelist  : {- empty -}                             { []                   }
@@ -70,20 +73,12 @@ data LispExpr
     | IfExpr      LispExpr  LispExpr  LispExpr
     | LetExpr    [(String, LispExpr)] LispExpr
     | IdentExpr   String 
-    | FloatExpr     Float
+    | FloatExpr   Float
     | BoolExpr    Bool
     | StrExpr     String
     | ListExpr   [LispExpr]
     | QuoteExpr   LispExpr
     deriving Show
-
---instance Show LispExpr where
---    show (IdentExpr s) = s
---    show (FloatExpr n) = show n
---    show (BoolExpr  b) = if b then "#t" else "#f"
---    show (StrExpr   s) = s
---    show (ListExpr  l) = "(" ++ (unwords $ map show l) ++ ")"
---    show _             = "unimplemented"
 
 }
 
